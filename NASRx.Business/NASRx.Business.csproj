@@ -5,6 +5,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <COMReference Include="SAPbobsCOM">
+        <WrapperTool>tlbimp</WrapperTool>
+        <VersionMinor>0</VersionMinor>
+        <VersionMajor>9</VersionMajor>
+        <Guid>fc8030be-f5d2-4b8e-8f92-44228fe30090</Guid>
+        <Lcid>0</Lcid>
+        <Isolated>false</Isolated>
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </COMReference>
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\NASRx.Infra\NASRx.Infra.csproj" />
       <ProjectReference Include="..\NASRx.Model\NASRx.Model.csproj" />
       <ProjectReference Include="..\NASRx.Repositories\NASRx.Repositories.csproj" />
@@ -13,12 +25,6 @@
 
     <ItemGroup>
         <SupportedPlatform Include="windows" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Reference Include="SAPBusinessOneSDK">
-        <HintPath>..\Library\SAP Business One SDK\Lib\SAPBusinessOneSDK.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
 </Project>

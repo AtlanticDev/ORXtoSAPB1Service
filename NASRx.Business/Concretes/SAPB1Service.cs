@@ -17,8 +17,8 @@ namespace NASRx.Business.Concretes
 
         public SAPB1Service(ILogging logging)
         {
-            _company = new Company
-            {
+
+            _company = new Company {
                 CompanyDB = NASRxSettings.Instance.SAPSettings.CompanyDb,
                 DbServerType = BoDataServerTypes.dst_MSSQL2016,
                 Password = NASRxSettings.Instance.SAPSettings.Password,
@@ -54,34 +54,64 @@ namespace NASRx.Business.Concretes
         {
             if (string.IsNullOrWhiteSpace(transaction.CustomerId))
                 return;
+            try
+            {
 
-            var partner = (BusinessPartners)_company.GetBusinessObject(BoObjectTypes.oBusinessPartners);
-            var addresses = partner.Addresses;
+                var partner = (BusinessPartners)_company.GetBusinessObject(BoObjectTypes.oBusinessPartners);
 
-            partner.CardCode = transaction.CustomerId;
-            partner.CardName = transaction.CustomerName;
-            partner.CardType = BoCardTypes.cCustomer;
-            partner.EmailAddress = transaction.DeliveryEmail;
 
-            addresses.AddressName = transaction.BillToAddress1;
-            addresses.AddressName2 = transaction.BillToAddress2;
-            addresses.AddressName3 = transaction.BillToAddress3;
-            addresses.AddressType = BoAddressType.bo_BillTo;
-            addresses.City = transaction.BillToCity;
-            addresses.State = transaction.BillToState;
-            addresses.ZipCode = transaction.BillToZip;
-            addresses.Add();
+                partner.CardCode = transaction.CustomerId;
+                partner.CardName = transaction.CustomerName;
+                partner.CardType = BoCardTypes.cCustomer;
+                partner.EmailAddress = transaction.DeliveryEmail;
 
-            addresses.AddressName = transaction.ShipToAddress1;
-            addresses.AddressName2 = transaction.ShipToAddress2;
-            addresses.AddressName3 = transaction.ShipToAddress3;
-            addresses.AddressType = BoAddressType.bo_ShipTo;
-            addresses.City = transaction.ShipToCity;
-            addresses.State = transaction.ShipToState;
-            addresses.ZipCode = transaction.ShipToZip;
-            addresses.Add();
+                // added this becuase getting error
+                partner.Address = transaction.ShipToAddress1;
+                partner.City = transaction.ShipToCity;
+                partner.BillToState = transaction.ShipToState;
+                partner.ZipCode = transaction.ShipToZip;
+                partner.MailAddress = transaction.ShipToAddress1;
+                partner.MailCity = transaction.ShipToCity;
+                partner.MailZipCode = transaction.ShipToZip;
+                int ret = partner.Add();
+                if (ret != 0)
+                {
+                    string err = _company.GetLastErrorDescription();
+                    Logging.LogDebug($"falied to add Customer {partner.CardCode} {err}");
+                }
 
-            partner.Add();
+
+                var addresses = partner.Addresses;
+
+                addresses.SetCurrentLine(0);
+                addresses.AddressName = transaction.BillToAddress1;
+                addresses.AddressName2 = transaction.BillToAddress2;
+                addresses.AddressName3 = transaction.BillToAddress3;
+                addresses.AddressType = BoAddressType.bo_BillTo;
+                addresses.City = transaction.BillToCity;
+                addresses.State = transaction.BillToState;
+                addresses.ZipCode = transaction.BillToZip;
+                addresses.Add();
+
+
+                addresses.SetCurrentLine(1);
+                addresses.AddressName = transaction.ShipToAddress1;
+                addresses.AddressName2 = transaction.ShipToAddress2;
+                addresses.AddressName3 = transaction.ShipToAddress3;
+                addresses.AddressType = BoAddressType.bo_ShipTo;
+                addresses.City = transaction.ShipToCity;
+                addresses.State = transaction.ShipToState;
+                addresses.ZipCode = transaction.ShipToZip;
+                addresses.Add();
+
+
+            }
+            catch (Exception ex)
+            {
+                Logging.LogError(ex.Message);
+                throw;
+            }
+
         }
 
         public void CreateInvoice(Invoice transaction)
@@ -89,7 +119,7 @@ namespace NASRx.Business.Concretes
             var invoice = (Documents)_company.GetBusinessObject(BoObjectTypes.oInvoices);
             var invoiceItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
 
-            invoice.CardCode = transaction.TrackingNumber;
+            invoice.CardCode = transaction.InvoiceNumber;
             invoice.DocType = BoDocumentTypes.dDocument_Service;
             invoice.DocTotal = Convert.ToDouble(transaction.Items.Sum(i => i.QtyShipped.GetValueOrDefault(0M) * i.UnitPrice.GetValueOrDefault(0M)));
             invoice.HandWritten = BoYesNoEnum.tNO;
@@ -100,8 +130,13 @@ namespace NASRx.Business.Concretes
             if (transaction.InvoiceDueDate.HasValue)
                 invoice.DocDueDate = transaction.InvoiceDueDate.Value;
 
-            invoice.Add();
-
+            
+            int ret = invoice.Add(); 
+            if (ret != 0)
+            {
+                string err = _company.GetLastErrorDescription();
+                Logging.LogDebug($"falied to add Customer's Invoice { invoice.CardCode} {err}");
+            }
             foreach (var item in transaction.Items)
             {
                 invoiceItem.ItemCode = item.ItemNumber;

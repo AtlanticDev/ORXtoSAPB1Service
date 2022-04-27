@@ -36,12 +36,17 @@ namespace NASRx.Service
                     currentMultiplier *= 2;
                 else
                 {
+                    
                     foreach (var invoice in invoices)
                     {
-                        if (!_sapB1Service.CheckIfBusinessPartnerExist(invoice.CustomerId))
-                            _sapB1Service.CreateBusinessPartner(invoice);
 
+                        if (!_sapB1Service.CheckIfBusinessPartnerExist(invoice.CustomerId))
+                        {
+                            Logging.LogDebug($"Adding customer {invoice.CustomerId}");
+                            _sapB1Service.CreateBusinessPartner(invoice);
+                        }
                         _sapB1Service.CreateInvoice(invoice);
+                        Logging.LogDebug(invoice.InvoiceNumber);
                         if (_tokenSource.IsCancellationRequested)
                             break;
                     }
@@ -58,8 +63,10 @@ namespace NASRx.Service
         {
             var (result, errorMsg) = _sapB1Service.Connect();
             if (!result)
+            {
+                Logging.LogDebug(errorMsg);
                 return;
-
+            }
             _tokenSource = new CancellationTokenSource();
             Task.Factory.StartNew(async () => await Process(), _tokenSource.Token);
         }

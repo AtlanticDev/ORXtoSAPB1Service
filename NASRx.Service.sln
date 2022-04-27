@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32328.378
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0 - Presentation", "0 - Presentation", "{7E54B2D7-D58D-4AFB-A824-3CC406BCA6EE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NASRx.Service", "NASRx.Service\NASRx.Service.csproj", "{6CE203FE-4C80-491C-B063-FAA503FD388C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D658CF50-C258-4DE8-B6F6-D4593787567F} = {D658CF50-C258-4DE8-B6F6-D4593787567F}
+		{CE4004D6-1D7F-4700-A171-5EB7341689D6} = {CE4004D6-1D7F-4700-A171-5EB7341689D6}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Business", "1 - Business", "{8D82745B-25EC-4615-BF0C-E23EB04D9272}"
 EndProject
@@ -25,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NASRx.Repositories", "NASRx
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NASRx.Model", "NASRx.Model\NASRx.Model.csproj", "{35895AFE-3779-4EB7-A766-BD1513A86A76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NASRx.ModelConfig", "NASRx.ModelConfig\NASRx.ModelConfig.csproj", "{A44EA7F8-DBCE-4310-A9BB-16D50BDFE354}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NASRx.ModelConfig", "NASRx.ModelConfig\NASRx.ModelConfig.csproj", "{A44EA7F8-DBCE-4310-A9BB-16D50BDFE354}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NASRx.Infra", "NASRx.Infra\NASRx.Infra.csproj", "{CE4004D6-1D7F-4700-A171-5EB7341689D6}"
 EndProject
