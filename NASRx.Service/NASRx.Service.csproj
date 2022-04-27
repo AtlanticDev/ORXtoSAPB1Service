@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+        <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+        <PackageReference Include="Topshelf" Version="4.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\NASRx.Business\NASRx.Business.csproj" />
+        <ProjectReference Include="..\NASRx.IoC\NASRx.IoC.csproj" />
+        <ProjectReference Include="..\NASRx.ModelConfig\NASRx.ModelConfig.csproj" />
+        <ProjectReference Include="..\NASRx.Model\NASRx.Model.csproj" />
+        <ProjectReference Include="..\NASRx.Utilities\NASRx.Utilities.csproj" />
+    </ItemGroup>
+
+</Project>

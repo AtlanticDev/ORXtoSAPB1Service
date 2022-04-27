@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleInjector" Version="5.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NASRx.Business\NASRx.Business.csproj" />
+    <ProjectReference Include="..\NASRx.Repositories\NASRx.Repositories.csproj" />
+  </ItemGroup>
+
+</Project>
