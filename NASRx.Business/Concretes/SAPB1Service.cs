@@ -77,7 +77,7 @@ namespace NASRx.Business.Concretes
                 if (ret != 0)
                 {
                     string err = _company.GetLastErrorDescription();
-                    Logging.LogDebug($"falied to add Customer {partner.CardCode} {err}");
+                    Logging.LogDebug($"failed to add Customer {partner.CardCode} {err}");
                 }
 
 
@@ -114,43 +114,93 @@ namespace NASRx.Business.Concretes
 
         }
 
+        public int CreateNonInventoryItem(InvoiceDetail item)
+        {
+            Logging.LogDebug($"Creating Item {item.ItemNumber}");
+            Items vItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
+            vItem.ItemCode = item.ItemNumber;
+            vItem.ItemName = item.ItemDescription;
+            vItem.ItemType = ItemTypeEnum.itItems;
+            vItem.InventoryItem = BoYesNoEnum.tNO;
+            vItem.SalesItem = BoYesNoEnum.tYES;
+            vItem.PurchaseItem = BoYesNoEnum.tNO;
+            vItem.VatLiable = BoYesNoEnum.tNO;
+            vItem.ArTaxCode = "EX";
+            vItem.SalesUnit = "EACH";
+            vItem.InventoryUOM = "EACH";
+            vItem.GLMethod = BoGLMethods.glm_ItemClass;
+
+
+
+            vItem.TaxType = BoTaxTypes.tt_No;
+            int ret = vItem.Add();
+            if (ret != 0)
+            {
+                string err = _company.GetLastErrorCode().ToString() + " - " + _company.GetLastErrorDescription();
+                Logging.LogDebug($"Unable to add item { item.ItemNumber} {err}");
+                return -1;
+            }
+            return 0;
+        }
+
+
+
         public void CreateInvoice(Invoice transaction)
         {
             var invoice = (Documents)_company.GetBusinessObject(BoObjectTypes.oInvoices);
             var invoiceItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
 
-            invoice.CardCode = transaction.InvoiceNumber;
-            invoice.DocType = BoDocumentTypes.dDocument_Service;
-            invoice.DocTotal = Convert.ToDouble(transaction.Items.Sum(i => i.QtyShipped.GetValueOrDefault(0M) * i.UnitPrice.GetValueOrDefault(0M)));
+            invoice.CardCode = transaction.CustomerId;
+            
+            invoice.DocType = BoDocumentTypes.dDocument_Items;
+            invoice.NumAtCard = transaction.CustomerPoNumber;
+            // invoice.DocTotal = Convert.ToDouble(transaction.Items.Sum(i => i.QtyShipped.GetValueOrDefault(0M) * i.UnitPrice.GetValueOrDefault(0M)));
             invoice.HandWritten = BoYesNoEnum.tNO;
+            invoice.DocNum = Convert.ToInt32(transaction.InvoiceNumber);
+            
 
             if (transaction.InvoiceDate.HasValue)
+            {
+
                 invoice.DocDate = transaction.InvoiceDate.Value;
+                invoice.TaxDate = transaction.InvoiceDate.Value;
+            }
+
 
             if (transaction.InvoiceDueDate.HasValue)
                 invoice.DocDueDate = transaction.InvoiceDueDate.Value;
+       
 
-            
-            int ret = invoice.Add(); 
-            if (ret != 0)
+
+            int lineNo = 0;
+            foreach (InvoiceDetail item in transaction.Items)
             {
-                string err = _company.GetLastErrorDescription();
-                Logging.LogDebug($"falied to add Customer's Invoice { invoice.CardCode} {err}");
+                                
+                Items vItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
+                if (!vItem.GetByKey(item.ItemNumber.ToString())) CreateNonInventoryItem(item);
+                var lines = invoice.Lines;
+                lines.SetCurrentLine(lineNo);
+                lines.ItemCode = item.ItemNumber;
+                lines.ItemDescription = item.ItemDescription;
+                lines.Quantity= Convert.ToDouble(item.QtyShipped);
+                lines.UnitPrice = Convert.ToDouble(item.UnitPrice);
+                lines.DiscountPercent = 0;
+                lines.TaxType = BoTaxTypes.tt_No;
+                lines.LineType = BoDocLineType.dlt_Regular;
+
+                lines.Add();
+                
             }
-            foreach (var item in transaction.Items)
-            {
-                invoiceItem.ItemCode = item.ItemNumber;
-                invoiceItem.ItemName = item.ItemDescription;
-                invoiceItem.ItemType = ItemTypeEnum.itItems;
-                // invoiceItem.ItemClass = ItemClassEnum.itcService;
-                invoiceItem.InventoryItem = BoYesNoEnum.tNO;
 
-                invoiceItem.SalesUnit = item.QtyShipped.ToString();
-                invoiceItem.AvgStdPrice = Convert.ToDouble(item.UnitPrice.GetValueOrDefault(0M));
-                invoiceItem.ProdStdCost = Convert.ToDouble(item.UnitCost.GetValueOrDefault(0M));
-                // invoiceItem.????? = item.QtyShipped.GetValueOrDefault(0M) * item.UnitPrice.GetValueOrDeafult(0M);
-                invoiceItem.WhsInfo.WarehouseCode = item.WarehouseId;
-                invoiceItem.Add();
+            if (invoice.Add() != 0)
+            {
+                string err = _company.GetLastErrorCode().ToString() + " - " + _company.GetLastErrorDescription();
+                Logging.LogDebug($"failed to add Customer's Invoice { invoice.CardCode} {err}");
+            }
+            else
+            {
+                // mark AR as processed
+
             }
         }
 
