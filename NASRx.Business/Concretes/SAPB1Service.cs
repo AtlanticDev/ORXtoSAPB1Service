@@ -130,8 +130,6 @@ namespace NASRx.Business.Concretes
             vItem.InventoryUOM = "EACH";
             vItem.GLMethod = BoGLMethods.glm_ItemClass;
 
-
-
             vItem.TaxType = BoTaxTypes.tt_No;
             int ret = vItem.Add();
             if (ret != 0)
@@ -151,45 +149,38 @@ namespace NASRx.Business.Concretes
             var invoiceItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
 
             invoice.CardCode = transaction.CustomerId;
-            
             invoice.DocType = BoDocumentTypes.dDocument_Items;
             invoice.NumAtCard = transaction.CustomerPoNumber;
             // invoice.DocTotal = Convert.ToDouble(transaction.Items.Sum(i => i.QtyShipped.GetValueOrDefault(0M) * i.UnitPrice.GetValueOrDefault(0M)));
             invoice.HandWritten = BoYesNoEnum.tNO;
             invoice.DocNum = Convert.ToInt32(transaction.InvoiceNumber);
-            
 
             if (transaction.InvoiceDate.HasValue)
             {
-
                 invoice.DocDate = transaction.InvoiceDate.Value;
                 invoice.TaxDate = transaction.InvoiceDate.Value;
             }
 
-
             if (transaction.InvoiceDueDate.HasValue)
                 invoice.DocDueDate = transaction.InvoiceDueDate.Value;
-       
-
 
             int lineNo = 0;
             foreach (InvoiceDetail item in transaction.Items)
             {
-                                
+
                 Items vItem = (Items)_company.GetBusinessObject(BoObjectTypes.oItems);
                 if (!vItem.GetByKey(item.ItemNumber.ToString())) CreateNonInventoryItem(item);
                 var lines = invoice.Lines;
                 lines.SetCurrentLine(lineNo);
                 lines.ItemCode = item.ItemNumber;
                 lines.ItemDescription = item.ItemDescription;
-                lines.Quantity= Convert.ToDouble(item.QtyShipped);
+                lines.Quantity = Convert.ToDouble(item.QtyShipped);
                 lines.UnitPrice = Convert.ToDouble(item.UnitPrice);
                 lines.DiscountPercent = 0;
                 lines.TaxType = BoTaxTypes.tt_No;
                 lines.LineType = BoDocLineType.dlt_Regular;
-
                 lines.Add();
-                
+
             }
 
             if (invoice.Add() != 0)
@@ -199,7 +190,7 @@ namespace NASRx.Business.Concretes
             }
             else
             {
-                // mark AR as processed
+                // mark AR as processed  update CustomerInvoiceHistory set SapEntered = Now() , SapDocumentEntry =  invoice.nvoice.DocNum
 
             }
         }
