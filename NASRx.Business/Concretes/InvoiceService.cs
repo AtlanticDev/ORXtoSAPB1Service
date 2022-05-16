@@ -8,29 +8,38 @@ using System.Threading.Tasks;
 
 namespace NASRx.Business.Concretes
 {
-    public class InvoiceService : IInvoiceService
+    public class InvoiceService : GenericService<Invoice, int>, IInvoiceService
     {
-        private readonly ILogging _logging;
-        private readonly IInvoiceRepository _repository;
-        private readonly IUnitOfWork _unitOfWork;
-
         public InvoiceService(ILogging logging, IInvoiceRepository repository, IUnitOfWork unitOfWork)
-        {
-            _logging = logging;
-            _repository = repository;
-            _unitOfWork = unitOfWork;
-        }
+            : base(logging, repository, unitOfWork) { }
 
         public async Task<IEnumerable<Invoice>> GetPendingInvoices()
         {
             try
             {
-                return await _repository.GetPendingInvoices();
+                return await (Repository as IInvoiceRepository).GetPendingInvoices();
             }
             catch (Exception ex)
             {
-                _logging.LogError(ex);
+                Logging.LogError(ex);
                 return null;
+            }
+        }
+
+        public async Task<bool> UpdateAsNoPending(Invoice invoice)
+        {
+            try
+            {
+                UnitOfWork.BeginTransaction();
+                var result = await (Repository as IInvoiceRepository).UpdateAsNoPending(invoice);
+                UnitOfWork.CommitTransaction();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                UnitOfWork.RollbackTransaction();
+                Logging.LogError(ex);
+                return false;
             }
         }
     }

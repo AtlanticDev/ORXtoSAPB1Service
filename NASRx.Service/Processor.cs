@@ -1,4 +1,5 @@
 ﻿using NASRx.Business.Abstractions;
+using NASRx.Infra.Abstractions;
 using NASRx.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +13,13 @@ namespace NASRx.Service
 
         private CancellationTokenSource _tokenSource;
         private readonly IInvoiceService _invoiceService;
+        private readonly ILogging _logging;
         private readonly ISAPB1Service _sapB1Service;
 
-        public Processor(IInvoiceService invoiceService, ISAPB1Service sapB1Service)
+        public Processor(IInvoiceService invoiceService, ILogging logging, ISAPB1Service sapB1Service)
         {
             _invoiceService = invoiceService;
+            _logging = logging;
             _sapB1Service = sapB1Service;
         }
 
@@ -36,17 +39,17 @@ namespace NASRx.Service
                     currentMultiplier *= 2;
                 else
                 {
-                    
                     foreach (var invoice in invoices)
                     {
-
-                        if (!_sapB1Service.CheckIfBusinessPartnerExist(invoice.CustomerId))
+                        if (!_sapB1Service.CheckIfBusinessPartnerExist(invoice.CustomerNo))
                         {
-                            Logging.LogDebug($"Adding customer {invoice.CustomerId}");
+                            _logging.LogDebug($"Adding customer {invoice.CustomerNo}");
                             _sapB1Service.CreateBusinessPartner(invoice);
                         }
+
                         _sapB1Service.CreateInvoice(invoice);
-                        Logging.LogDebug(invoice.InvoiceNumber);
+                        _logging.LogDebug(invoice.InvoiceNumber);
+
                         if (_tokenSource.IsCancellationRequested)
                             break;
                     }
@@ -64,7 +67,7 @@ namespace NASRx.Service
             var (result, errorMsg) = _sapB1Service.Connect();
             if (!result)
             {
-                Logging.LogDebug(errorMsg);
+                _logging.LogDebug(errorMsg);
                 return;
             }
             _tokenSource = new CancellationTokenSource();

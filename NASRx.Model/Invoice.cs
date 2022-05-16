@@ -30,6 +30,8 @@ namespace NASRx.Model
 
         public string CustomerName { get; set; }
 
+        public string CustomerNo { get; set; }
+
         public string CustomerPoNumber { get; set; }
 
         public string DeliveryEmail { get; set; }

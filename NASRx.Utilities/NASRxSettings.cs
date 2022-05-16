@@ -10,8 +10,6 @@ namespace NASRx.Utilities
 
         public string ConnectionString { get; internal set; }
 
-        public string EventSource { get; set; }
-
         public SAPSettings SAPSettings { get; set; }
 
         public static void Initialize(IConfiguration configuration)

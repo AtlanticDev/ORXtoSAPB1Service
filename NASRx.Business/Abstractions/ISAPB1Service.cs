@@ -8,9 +8,9 @@ namespace NASRx.Business.Abstractions
 
         (bool result, string errorMsg) Connect();
 
-        void CreateBusinessPartner(Invoice transaction);
+        void CreateBusinessPartner(Invoice invoice);
 
-        void CreateInvoice(Invoice transaction);
+        void CreateInvoice(Invoice invoice);
 
         bool Disconnect();
     }

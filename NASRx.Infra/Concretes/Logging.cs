@@ -1,69 +1,44 @@
 ﻿using NASRx.Infra.Abstractions;
-using NASRx.Utilities;
+using NLog;
 using System;
-using System.Diagnostics;
 
 namespace NASRx.Infra.Concretes
 {
     public class Logging : ILogging
     {
-        public void LogError(string message)
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        private static void DisplayMessage(string message)
         {
-            try
-            {
-                if (!EventLog.SourceExists(NASRxSettings.Instance.EventSource))
-                    return;
-                var eventLog = new EventLog { Source = NASRxSettings.Instance.EventSource };
-                eventLog.WriteEntry($"{Environment.NewLine}{Environment.NewLine}{message}", EventLogEntryType.Error, 0);
-            }
-            catch { }
+            if (Environment.UserInteractive)
+                Console.WriteLine($"{DateTime.Now}: {message}");
         }
 
-        public void LogError(Guid exceptionId)
+        public void LogError(string message)
         {
-            try { LogError($"System Error #{exceptionId}"); }
-            catch { }
+            DisplayMessage(message);
+            _logger.Error(message);
         }
 
         public void LogError(Exception exception)
-            => LogError(exception, string.Empty);
+            => LogError(exception?.Message);
 
-        public void LogError(Exception exception, Guid exceptionId)
-            => LogError(exception, $"System Error #{exceptionId}");
-
-        public void LogError(Exception exception, string exceptionDesc)
+        public void LogDebug(string message)
         {
-            try
-            {
-                var message = exception != null ? exception.ToString() : "Unknown error";
-                message += $"{Environment.NewLine}{Environment.NewLine}{exceptionDesc}";
-                LogError(message);
-            }
-            catch { }
+            DisplayMessage(message);
+            _logger.Debug(message);
         }
 
         public void LogInformation(string message)
         {
-            try
-            {
-                if (!EventLog.SourceExists(NASRxSettings.Instance.EventSource))
-                    return;
-                var eventLog = new EventLog { Source = NASRxSettings.Instance.EventSource };
-                eventLog.WriteEntry($"{Environment.NewLine}{Environment.NewLine}{message}", EventLogEntryType.Information, 2);
-            }
-            catch { }
+            DisplayMessage(message);
+            _logger.Info(message);
         }
 
         public void LogWarning(string message)
         {
-            try
-            {
-                if (!EventLog.SourceExists(NASRxSettings.Instance.EventSource))
-                    return;
-                var eventLog = new EventLog { Source = NASRxSettings.Instance.EventSource };
-                eventLog.WriteEntry($"{Environment.NewLine}{Environment.NewLine}{message}", EventLogEntryType.Warning, 1);
-            }
-            catch { }
+            DisplayMessage(message);
+            _logger.Warn(message);
         }
     }
 }
